@@ -27,7 +27,7 @@ class BaseOauth2:
         self.revoke_token_endpoint = revoke_token_endpoint
         self.base_scopes = base_scopes
 
-    async def get_authorization_url(
+    def get_authorization_url(
         self,
         redirect_url: Annotated[str, Doc("")],
         scopes: Annotated[Optional[List[str]], Doc("")] = None,
@@ -46,6 +46,29 @@ class BaseOauth2:
         params.update(**kwargs)
 
         return f"{self.authorize_endpoint}?{urlencode(params)}"
+
+    async def authorization_code_callback(
+        self,
+        code: Annotated[
+            str, Doc("Authorization code received from authorization server")
+        ],
+        redirect_uri: Annotated[str, Doc("")],
+        code_verifier: Annotated[Optional[str], Doc("")] = None,
+    ):
+        data = dict(
+            grant_type="authorization_code",
+            code=code,
+            redirect_uri=redirect_uri,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+        )
+
+        if code_verifier:
+            data['code_verifier'] = code_verifier
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(self.access_token_endpoint, data=data)
+            return response.json()
 
 
 class OpenID(BaseOauth2):
@@ -72,7 +95,7 @@ class OpenID(BaseOauth2):
 
         revoke_token_endpoint = self.openid_configuration.get("revocation_endpoint")
 
-        base_scopes = base_scopes or ["openid", "profile"]
+        base_scopes = base_scopes or ["openid", "profile", "offline_access"]
 
         with httpx.Client() as client:
             response = client.get(self.openid_configuration.get("jwks_uri"))
@@ -92,7 +115,7 @@ class OpenID(BaseOauth2):
     def decode_token(self, token: str):
         return jwt.decode(token, key=self.keys, audience="account")
 
-    def authorize_client(self):
+    async def authorize_client(self):
         """
         Authorize client by its id and secret using client_credentials grant type
         """
@@ -102,7 +125,7 @@ class OpenID(BaseOauth2):
             grant_type="client_credentials",
         )
 
-        with httpx.Client() as client:
+        async with httpx.AsyncClient() as client:
             response = client.post(self.access_token_endpoint, data=params)
             return response.json()
 
@@ -118,7 +141,7 @@ kc = OpenID(
 
 print(kc)
 
-data =kc.authorize_client() 
+data = kc.authorize_client()
 print(data)
 
-print(kc.decode_token(data['access_token']))
+print(kc.decode_token(data["access_token"]))
