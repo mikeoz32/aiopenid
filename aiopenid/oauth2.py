@@ -36,7 +36,7 @@ class BaseOauth2:
         params = {
             "response_type": "code",
             "client_id": self.client_id,
-            "redirect_url": redirect_url,
+            "redirect_uri": redirect_url,
         }
 
         scopes = scopes or self.base_scopes
