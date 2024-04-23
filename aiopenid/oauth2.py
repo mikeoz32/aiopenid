@@ -133,15 +133,15 @@ class OpenID(BaseOauth2):
         return f"{self.keys}, {self.authorize_endpoint}"
 
 
-kc = OpenID(
-    client_id="admin-cli",
-    client_secret="Lednrb2CsYzYvRm3D2BfMOAT5MUPRut9",
-    openid_configuration_endpoint="https://auth.cekocloud.com/realms/industry-dev/.well-known/openid-configuration",
-)
-
-print(kc)
-
-data = kc.authorize_client()
-print(data)
-
-print(kc.decode_token(data["access_token"]))
+# kc = OpenID(
+#     client_id="admin-cli",
+#     client_secret="Lednrb2CsYzYvRm3D2BfMOAT5MUPRut9",
+#     openid_configuration_endpoint="https://auth.cekocloud.com/realms/industry-dev/.well-known/openid-configuration",
+# )
+#
+# print(kc)
+#
+# data = kc.authorize_client()
+# print(data)
+#
+# print(kc.decode_token(data["access_token"]))
