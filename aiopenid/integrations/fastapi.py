@@ -14,7 +14,7 @@ class OAuth2AuthorizationCodeCallback:
         self.client = client
 
     async def __call__(self, request: Request, code: Annotated[str, Query()]) -> Any:
-        redirect_url = str(request.url)
+        redirect_url =f"{request.base_url}{request.url.path[1:]}" 
 
         return await self.client.authorization_code_callback(
             code=code, redirect_uri=redirect_url
